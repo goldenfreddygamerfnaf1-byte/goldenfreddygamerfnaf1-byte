@@ -9,7 +9,6 @@ from datetime import datetime
 TOKEN = "DISCORD_TOKEN"
 WEBHOOK = "DISCORD_WEBHOOK"
 VOICE = "pt-BR-AntonioNeural"
-CANAL_ID = 1501006139125534860
 
 intents = discord.Intents.default()
 intents.voice_states = True
@@ -17,16 +16,82 @@ intents.members = True
 
 bot = discord.Client(intents=intents)
 
-entradas = ["⚠ FREQUÊNCIA DESCONHECIDA DETECTADA.","█ alguém entrou na transmissão █","ERRO_0x98 :: presença detectada","[SISTEMA] conexão estabelecida","voz detectada na escuridão","█ USUÁRIO INVÁLIDO CONECTADO █","anomalia detectada no canal","algo entrou na call"]
-saidas = ["⛔ conexão encerrada","sinal perdido","█ transmissão interrompida █","presença removida do sistema","eco finalizado","o silêncio voltou","ERRO :: usuário desconectado"]
-frases_voz = ["Eu consigo te ver.","Você não deveria estar aqui.","Eu estava te esperando.","Não olha pra trás.","Tem algo errado com esse lugar.","Eu estou sempre de olho.","Você não consegue se esconder de mim.","Ouviu isso?","Eu sei que você está aí.","Sinal encontrado.","Conexão estabelecida.","Você não está sozinho.","Eu vou te encontrar.","Erro. Presença detectada.","Corre.","Eles estão vindo.","Esse lugar não é seguro.","Quanto tempo você acha que tem?","Já é tarde demais.","Estou bem aqui do seu lado.","Eu posso te ver. Bora brincar?","Eu amo brincar.","Não tenha medo. Eu não mordo. Eu mato.","Ora, ora, carne nova.","Olha, novos brinquedos.","Eu estava tão sozinho. Agora eu tenho novas diversões.","Vamos começar do início, tá bom?","Você veio até mim. Perfeito.","Vamos começar arrancando sua cabeça e depois comer tuas tripas.","Oi, meus amigos, como vocês estão? Tudo bem com vocês?","E você, Bruno, como vai essa vida? É ótima?","E a sua Golden, como está?","Bruna, como você está, minha amiga? Vamos conversar um pouquinho, a sós?","Golden, Golden, como você está, meu brother? Como vai a vida? Morta ou inexistente.","Mas estão, perfeito! Eu estava tão sozinho, agora eu tenho novas diversões."]
-erros_deteccao = ["ERRO. ERRO. ERRO. 0 x 9 8. FALHA NO SISTEMA. INTRUSO DETECTADO. CÓDIGO 4 1 3. ACESSO NEGADO. CORROMPIDO. SISTEMA FALHOU. 0 1 0 1 0 1. CONEXÃO INSTÁVEL. ALERTA. ALERTA. PRESENÇA IDENTIFICADA. ERRO CRÍTICO. REINICIANDO. FALHA. FALHA. FALHA. USUÁRIO INVÁLIDO. ANOMALIA DETECTADA. CÓDIGO VERMELHO."]
+entradas = [
+    "⚠ FREQUÊNCIA DESCONHECIDA DETECTADA.",
+    "█ alguém entrou na transmissão █",
+    "ERRO_0x98 :: presença detectada",
+    "[SISTEMA] conexão estabelecida",
+    "voz detectada na escuridão",
+    "█ USUÁRIO INVÁLIDO CONECTADO █",
+    "anomalia detectada no canal",
+    "algo entrou na call",
+]
+
+saidas = [
+    "⛔ conexão encerrada",
+    "sinal perdido",
+    "█ transmissão interrompida █",
+    "presença removida do sistema",
+    "eco finalizado",
+    "o silêncio voltou",
+    "ERRO :: usuário desconectado",
+]
+
+frases_voz = [
+    "Eu consigo te ver.",
+    "Você não deveria estar aqui.",
+    "Eu estava te esperando.",
+    "Não olha pra trás.",
+    "Tem algo errado com esse lugar.",
+    "Eu estou sempre de olho.",
+    "Você não consegue se esconder de mim.",
+    "Ouviu isso?",
+    "Eu sei que você está aí.",
+    "Sinal encontrado.",
+    "Conexão estabelecida.",
+    "Você não está sozinho.",
+    "Eu vou te encontrar.",
+    "Erro. Presença detectada.",
+    "Corre.",
+    "Eles estão vindo.",
+    "Esse lugar não é seguro.",
+    "Quanto tempo você acha que tem?",
+    "Já é tarde demais.",
+    "Estou bem aqui do seu lado.",
+    "Eu posso te ver. Bora brincar?",
+    "Eu amo brincar.",
+    "Não tenha medo. Eu não mordo. Eu mato.",
+    "Ora, ora, carne nova.",
+    "Olha, novos brinquedos.",
+    "Eu estava tão sozinho. Agora eu tenho novas diversões.",
+    "Vamos começar do início, tá bom?",
+    "Você veio até mim. Perfeito.",
+    "Vamos começar arrancando sua cabeça e depois comer tuas tripas.",
+    "Oi, meus amigos, como vocês estão? Tudo bem com vocês?",
+    "E você, Bruno, como vai essa vida? É ótima?",
+    "E a sua Golden, como está?",
+    "Bruna, como você está, minha amiga? Vamos conversar um pouquinho, a sós?",
+    "Golden, Golden, como você está, meu brother? Como vai a vida? Morta ou inexistente.",
+    "Mas estão, perfeito! Eu estava tão sozinho, agora eu tenho novas diversões.",
+]
+
+erros_deteccao = [
+    "ERRO. ERRO. ERRO. 0 x 9 8. FALHA NO SISTEMA. INTRUSO DETECTADO. CÓDIGO 4 1 3. ACESSO NEGADO. CORROMPIDO. "
+    "SISTEMA FALHOU. 0 1 0 1 0 1. CONEXÃO INSTÁVEL. ALERTA. ALERTA. PRESENÇA IDENTIFICADA. ERRO CRÍTICO. "
+    "REINICIANDO. FALHA. FALHA. FALHA. USUÁRIO INVÁLIDO. ANOMALIA DETECTADA. CÓDIGO VERMELHO.",
+]
+
+CANAL_ID = 1501006139125534860
 
 fila_frases = []
+canal_fixo = {}
+loop_ativo = {}
+
 
 async def gerar_audio(texto, arquivo="voz.mp3"):
     communicate = edge_tts.Communicate(texto, VOICE, rate="+30%")
     await communicate.save(arquivo)
+
 
 async def tocar_audio(voice, arquivo="voz.mp3"):
     if os.path.exists(arquivo) and voice.is_connected():
@@ -34,10 +99,26 @@ async def tocar_audio(voice, arquivo="voz.mp3"):
         while voice.is_playing():
             await asyncio.sleep(0.5)
 
+
 async def sequencia_deteccao(voice):
     texto = random.choice(erros_deteccao)
     await gerar_audio(texto, "deteccao.mp3")
     await tocar_audio(voice, "deteccao.mp3")
+
+
+async def manter_no_canal(guild):
+    while True:
+        try:
+            canal = canal_fixo.get(guild.id)
+            if canal and (
+                guild.voice_client is None or not guild.voice_client.is_connected()
+            ):
+                print(f"Reconectando ao canal: {canal.name}")
+                await canal.connect()
+        except Exception as e:
+            print(f"Erro ao reconectar: {e}")
+        await asyncio.sleep(10)
+
 
 async def loop_frases_aleatorias(guild):
     global fila_frases
@@ -52,10 +133,22 @@ async def loop_frases_aleatorias(guild):
                         fila_frases = frases_voz.copy()
                         random.shuffle(fila_frases)
                     frase = fila_frases.pop()
+                    print(f"Falando frase aleatória: {frase}")
                     await gerar_audio(frase)
                     await tocar_audio(voice)
         except Exception as e:
-            print(f"Erro no loop: {e}")
+            print(f"Erro no loop de frases: {e}")
+
+
+async def enviar_webhook(msg):
+    try:
+        async with aiohttp.ClientSession() as session:
+            payload = {"content": msg, "username": "SYSTEM_ERROR"}
+            async with session.post(WEBHOOK, json=payload) as resp:
+                print(f"Webhook enviado - status: {resp.status}")
+    except Exception as e:
+        print(f"Erro ao enviar webhook: {e}")
+
 
 async def manter_canal_fixo():
     await bot.wait_until_ready()
@@ -72,15 +165,6 @@ async def manter_canal_fixo():
                     print(f"Erro ao reconectar: {e}")
         await asyncio.sleep(30)
 
-async def enviar_webhook(msg):
-    try:
-        async with aiohttp.ClientSession() as session:
-            payload = {"content": msg, "username": "SYSTEM_ERROR"}
-            async with session.post(WEBHOOK, json=payload) as resp:
-                print(f"Webhook: {resp.status}")
-    except Exception as e:
-        print(f"Erro webhook: {e}")
-
 @bot.event
 async def on_ready():
     print(f"Bot online como {bot.user}")
@@ -88,29 +172,37 @@ async def on_ready():
         asyncio.create_task(loop_frases_aleatorias(guild))
     asyncio.create_task(manter_canal_fixo())
 
+
 @bot.event
 async def on_voice_state_update(member, before, after):
     if member.bot:
         return
+
     hora = datetime.now().strftime("%H:%M:%S")
 
+    # Entrou no canal fixo
     if before.channel is None and after.channel is not None:
         if after.channel.id == CANAL_ID:
             guild = after.channel.guild
             voice = guild.voice_client
+            print(f"[{hora}] {member.name} entrou no canal fixo")
+
             try:
                 if voice and voice.is_connected():
                     await sequencia_deteccao(voice)
             except Exception as e:
-                print(f"Erro sequência: {e}")
+                print(f"Erro na sequência: {e}")
+
             frase = random.choice(entradas)
             msg = f"```ansi\n[{hora}]\n{frase}\nUSUÁRIO: {member.name}\nCANAL: {after.channel.name}\n```"
             await enviar_webhook(msg)
 
+    # Saiu do canal fixo
     elif before.channel is not None and after.channel is None:
         if before.channel.id == CANAL_ID:
             frase = random.choice(saidas)
             msg = f"```ansi\n[{hora}]\n{frase}\nUSUÁRIO: {member.name}\n```"
             await enviar_webhook(msg)
+
 
 bot.run(TOKEN)
