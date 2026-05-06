@@ -1,17 +1,18 @@
 # Usa imagem oficial do Python
 FROM python:3.11-slim
 
-# Instala FFmpeg
-RUN apt-get update && apt-get install -y ffmpeg
-
 # Define diretório de trabalho
 WORKDIR /app
 
-# Copia os arquivos do projeto
-COPY . .
-
-# Instala dependências
+# Copia requirements e instala dependências
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Comando para rodar o bot
+# Instala FFmpeg (necessário para tocar áudio no Discord)
+RUN apt-get update && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
+
+# Copia o código do bot
+COPY . .
+
+# Define comando padrão para rodar o bot
 CMD ["python", "main.py"]
