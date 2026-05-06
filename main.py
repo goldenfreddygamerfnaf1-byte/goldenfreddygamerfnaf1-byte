@@ -6,10 +6,8 @@ import os
 import edge_tts
 from datetime import datetime
 
-TOKEN = "DISCORD_TOKEN"
-WEBHOOK = "DISCORD_WEBHOOK"
-VOICE = "pt-BR-AntonioNeural"
-
+TOKEN = os.environ.get("DISCORD_TOKEN")
+WEBHOOK = os.environ.get("DISCORD_WEBHOOK")
 intents = discord.Intents.default()
 intents.voice_states = True
 intents.members = True
