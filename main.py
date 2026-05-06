@@ -17,8 +17,7 @@ intents.message_content = True  # necessário para comandos de texto
 bot = discord.Client(intents=intents)
 
 # >>> CONFIGURAÇÃO DE VOZ <<<
-VOICE = "pt-BR-FrancisNeural"  # voz masculina
-RATE = "-20%"  # fala mais lenta e grave
+VOICE = "pt-BR-AntonioNeural"  # voz estável e suportada
 CANAL_ID = 1501006139125534860  # substitua pelo ID do canal de voz
 
 # Mensagens de entrada
@@ -50,27 +49,6 @@ frases_voz = [
     "Eu posso te ver.",
     "Bora brincar?",
     "Eu amo brincar.",
-    "Vamos começar arrancando suas cabeças e depois comendo as suas tripas.",
-    "Ora, ora, carne nova.",
-    "Não tenha medo. Eu não mordo. Eu mato.",
-    "Oi, meus amigos, como vocês estão? Tudo bem com vocês? Principalmente com o John, que já deve estar todo arrumado e tanto dar o cu.",
-    "E você, Bruno, como vai essa vida? É ótima?",
-    "E a sua Golden, como está?",
-    "E você, Bruna, como vai a vida? É ótima?",
-    "Olha, novos brinquedos! Vocês não deveriam estar aqui. Mas estão, perfeito!",
-    "Eu estava tão sozinho, agora eu tenho novos amigos, novas diversões, coisas boas.",
-    "Jão, eu fiquei sabendo que os negão te comeram hoje.",
-    "Bruna, como você está, minha amiga? Vamos conversar um pouquinho, a sós?",
-    "Golden, Golden, como você está, meu brother? Como vai a vida? Morta ou inexistente.",
-    "John, John, John, como é se sentir inútil, patético, uma puta cachorrinha que dá o cu todo dia? Como você se sente com tudo isso, hein?",
-    "Golden é meu brinquedo favorito.",
-    "Cada grito de vocês é música para mim.",
-    "Vocês são tão divertidos, principalmente quando têm medo.",
-    "Vocês são meus novos amigos ou minhas novas vítimas.",
-    "Vocês são tão frágeis e eu tão faminto.",
-    "Vocês são meus brinquedos favoritos.",
-    "Vocês acham que estão seguros? Não estão.",
-    "Como vocês estão, minhas vítimas... quero dizer, amigos.",
 ]
 
 # Mensagens de erro/detecção
@@ -84,9 +62,12 @@ fila_frases = []
 # Funções de áudio
 async def gerar_audio(texto, arquivo="voz.mp3"):
     print(f"[DEBUG] Gerando áudio: {texto[:50]}... -> {arquivo}")
-    communicate = edge_tts.Communicate(texto, VOICE, rate=RATE)
-    await communicate.save(arquivo)
-    print(f"[DEBUG] Áudio salvo em {arquivo}")
+    try:
+        communicate = edge_tts.Communicate(texto, VOICE)
+        await communicate.save(arquivo)
+        print(f"[DEBUG] Áudio salvo em {arquivo}")
+    except Exception as e:
+        print(f"[DEBUG] Erro ao gerar áudio: {e}")
 
 async def tocar_audio(voice, arquivo="voz.mp3"):
     print(f"[DEBUG] Tentando tocar: {arquivo}")
@@ -161,7 +142,7 @@ async def manter_canal_fixo():
                     print("[DEBUG] Reconectado ao canal fixo")
                 except Exception as e:
                     print(f"Erro ao reconectar: {e}")
-        await asyncio.sleep(30)
+        await asyncio.sleep(120)  # intervalo maior para evitar desconexões
 
 
 # Eventos
