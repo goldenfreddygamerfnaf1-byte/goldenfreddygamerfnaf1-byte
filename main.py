@@ -14,6 +14,10 @@ intents.members = True
 
 bot = discord.Client(intents=intents)
 
+# >>> VOZ SOMBRIA CONFIGURADA <<<
+VOICE = "pt-BR-FrancisNeural"  # voz masculina
+RATE = "-20%"  # fala mais lenta e grave
+
 entradas = [
     "⚠ FREQUÊNCIA DESCONHECIDA DETECTADA.",
     "█ alguém entrou na transmissão █",
@@ -56,21 +60,6 @@ frases_voz = [
     "Quanto tempo você acha que tem?",
     "Já é tarde demais.",
     "Estou bem aqui do seu lado.",
-    "Eu posso te ver. Bora brincar?",
-    "Eu amo brincar.",
-    "Não tenha medo. Eu não mordo. Eu mato.",
-    "Ora, ora, carne nova.",
-    "Olha, novos brinquedos.",
-    "Eu estava tão sozinho. Agora eu tenho novas diversões.",
-    "Vamos começar do início, tá bom?",
-    "Você veio até mim. Perfeito.",
-    "Vamos começar arrancando sua cabeça e depois comer tuas tripas.",
-    "Oi, meus amigos, como vocês estão? Tudo bem com vocês?",
-    "E você, Bruno, como vai essa vida? É ótima?",
-    "E a sua Golden, como está?",
-    "Bruna, como você está, minha amiga? Vamos conversar um pouquinho, a sós?",
-    "Golden, Golden, como você está, meu brother? Como vai a vida? Morta ou inexistente.",
-    "Mas estão, perfeito! Eu estava tão sozinho, agora eu tenho novas diversões.",
 ]
 
 erros_deteccao = [
@@ -87,7 +76,7 @@ loop_ativo = {}
 
 
 async def gerar_audio(texto, arquivo="voz.mp3"):
-    communicate = edge_tts.Communicate(texto, VOICE, rate="+30%")
+    communicate = edge_tts.Communicate(texto, VOICE, rate=RATE)
     await communicate.save(arquivo)
 
 
@@ -102,20 +91,6 @@ async def sequencia_deteccao(voice):
     texto = random.choice(erros_deteccao)
     await gerar_audio(texto, "deteccao.mp3")
     await tocar_audio(voice, "deteccao.mp3")
-
-
-async def manter_no_canal(guild):
-    while True:
-        try:
-            canal = canal_fixo.get(guild.id)
-            if canal and (
-                guild.voice_client is None or not guild.voice_client.is_connected()
-            ):
-                print(f"Reconectando ao canal: {canal.name}")
-                await canal.connect()
-        except Exception as e:
-            print(f"Erro ao reconectar: {e}")
-        await asyncio.sleep(10)
 
 
 async def loop_frases_aleatorias(guild):
