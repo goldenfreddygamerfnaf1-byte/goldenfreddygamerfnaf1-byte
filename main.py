@@ -12,13 +12,13 @@ WEBHOOK = os.environ.get("DISCORD_WEBHOOK")
 intents = discord.Intents.default()
 intents.voice_states = True
 intents.members = True
+intents.message_content = True  # necessário para comandos de texto
 
 bot = discord.Client(intents=intents)
 
 # >>> CONFIGURAÇÃO DE VOZ <<<
 VOICE = "pt-BR-FrancisNeural"  # voz masculina
 RATE = "-20%"  # fala mais lenta e grave
-
 CANAL_ID = 1501006139125534860  # substitua pelo ID do canal de voz
 
 # Mensagens de entrada
@@ -75,9 +75,7 @@ frases_voz = [
 
 # Mensagens de erro/detecção
 erros_deteccao = [
-    "ERRO. ERRO. ERRO. 0 x 9 8. FALHA NO SISTEMA. INTRUSO DETECTADO. CÓDIGO 4 1 3. ACESSO NEGADO. CORROMPIDO. "
-    "SISTEMA FALHOU. 0 1 0 1 0 1. CONEXÃO INSTÁVEL. ALERTA. ALERTA. PRESENÇA IDENTIFICADA. ERRO CRÍTICO. "
-    "REINICIANDO. FALHA. FALHA. FALHA. USUÁRIO INVÁLIDO. ANOMALIA DETECTADA. CÓDIGO VERMELHO.",
+    "ERRO. ERRO. ERRO. 0 x 9 8. FALHA NO SISTEMA. INTRUSO DETECTADO. ALERTA VERMELHO."
 ]
 
 fila_frases = []
@@ -85,14 +83,18 @@ fila_frases = []
 
 # Funções de áudio
 async def gerar_audio(texto, arquivo="voz.mp3"):
+    print(f"[DEBUG] Gerando áudio: {texto[:50]}... -> {arquivo}")
     communicate = edge_tts.Communicate(texto, VOICE, rate=RATE)
     await communicate.save(arquivo)
-
+    print(f"[DEBUG] Áudio salvo em {arquivo}")
 
 async def tocar_audio(voice, arquivo="voz.mp3"):
+    print(f"[DEBUG] Tentando tocar: {arquivo}")
     if not os.path.exists(arquivo):
+        print(f"[DEBUG] Arquivo {arquivo} não encontrado")
         return
     if not voice or not voice.is_connected():
+        print("[DEBUG] Voice client não conectado")
         return
 
     source = discord.FFmpegPCMAudio(
@@ -100,8 +102,10 @@ async def tocar_audio(voice, arquivo="voz.mp3"):
         options="-f mp3 -af aecho=0.8:0.9:1000:0.3,atempo=0.8"
     )
     voice.play(source)
+    print("[DEBUG] Playback iniciado")
     while voice.is_playing():
         await asyncio.sleep(0.5)
+    print("[DEBUG] Playback finalizado")
 
 
 # Sequência de erros ao entrar
@@ -154,6 +158,7 @@ async def manter_canal_fixo():
             if voice is None or not voice.is_connected():
                 try:
                     await canal.connect()
+                    print("[DEBUG] Reconectado ao canal fixo")
                 except Exception as e:
                     print(f"Erro ao reconectar: {e}")
         await asyncio.sleep(30)
@@ -178,24 +183,48 @@ async def on_voice_state_update(member, before, after):
     # Entrou no canal fixo
     if before.channel is None and after.channel is not None:
         if after.channel.id == CANAL_ID:
+            print(f"[DEBUG] {member.name} entrou no canal {after.channel.name}")
             guild = after.channel.guild
             voice = guild.voice_client
             try:
                 if voice and voice.is_connected():
+                    print("[DEBUG] Chamando sequencia_deteccao()")
                     await sequencia_deteccao(voice)
             except Exception as e:
-                print(f"Erro na sequência: {e}")
+                print(f"[DEBUG] Erro na sequência: {e}")
 
             frase = random.choice(entradas)
             msg = f"[{hora}] {frase} - USUÁRIO: {member.name}"
+            print(f"[DEBUG] Enviando webhook: {msg}")
             await enviar_webhook(msg)
 
     # Saiu do canal fixo
     elif before.channel is not None and after.channel is None:
         if before.channel.id == CANAL_ID:
+            print(f"[DEBUG] {member.name} saiu do canal {before.channel.name}")
             frase = random.choice(saidas)
             msg = f"[{hora}] {frase} - USUÁRIO: {member.name}"
+            print(f"[DEBUG] Enviando webhook: {msg}")
             await enviar_webhook(msg)
+
+
+# Comando manual de teste
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+
+    if message.content.lower().startswith("!testarvoz"):
+        canal = bot.get_channel(CANAL_ID)
+        if canal:
+            voice = canal.guild.voice_client
+            if voice and voice.is_connected():
+                frase = "Este é um teste de voz."
+                await gerar_audio(frase, "teste.mp3")
+                await tocar_audio(voice, "teste.mp3")
+                await message.channel.send("🎤 Teste de voz executado.")
+            else:
+                await message.channel.send("❌ Bot não está conectado ao canal de voz.")
 
 
 bot.run(TOKEN)
