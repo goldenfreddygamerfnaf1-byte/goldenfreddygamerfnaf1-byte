@@ -123,7 +123,7 @@ async def manter_no_canal(guild):
 async def loop_frases_aleatorias(guild):
     global fila_frases
     while True:
-        await asyncio.sleep(random.randint(1200, 5400))
+        await asyncio.sleep(random.randint(300, 900))
         try:
             voice = guild.voice_client
             if voice and voice.is_connected() and not voice.is_playing():
