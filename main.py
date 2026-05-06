@@ -18,6 +18,8 @@ bot = discord.Client(intents=intents)
 VOICE = "pt-BR-FrancisNeural"  # voz masculina
 RATE = "-20%"  # fala mais lenta e grave
 
+CANAL_ID = 1501006139125534860
+
 entradas = [
     "⚠ FREQUÊNCIA DESCONHECIDA DETECTADA.",
     "█ alguém entrou na transmissão █",
@@ -68,11 +70,7 @@ erros_deteccao = [
     "REINICIANDO. FALHA. FALHA. FALHA. USUÁRIO INVÁLIDO. ANOMALIA DETECTADA. CÓDIGO VERMELHO.",
 ]
 
-CANAL_ID = 1501006139125534860
-
 fila_frases = []
-canal_fixo = {}
-loop_ativo = {}
 
 
 async def gerar_audio(texto, arquivo="voz.mp3"):
@@ -82,7 +80,8 @@ async def gerar_audio(texto, arquivo="voz.mp3"):
 
 async def tocar_audio(voice, arquivo="voz.mp3"):
     if os.path.exists(arquivo) and voice.is_connected():
-        voice.play(discord.FFmpegPCMAudio(arquivo))
+        # Adicionando eco e voz grave
+        voice.play(discord.FFmpegPCMAudio(arquivo, options="-af aecho=0.8:0.9:1000:0.3,atempo=0.8"))
         while voice.is_playing():
             await asyncio.sleep(0.5)
 
@@ -137,6 +136,7 @@ async def manter_canal_fixo():
                 except Exception as e:
                     print(f"Erro ao reconectar: {e}")
         await asyncio.sleep(30)
+
 
 @bot.event
 async def on_ready():
