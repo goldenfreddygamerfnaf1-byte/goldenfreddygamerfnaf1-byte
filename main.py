@@ -45,31 +45,10 @@ saidas = [
 
 # Frases de voz sombrias
 frases_voz = [
-   "Você não deveria estar aqui.",
+    "Você não deveria estar aqui.",
     "Eu posso te ver.",
     "Bora brincar?",
     "Eu amo brincar.",
-    "Vamos começar arrancando suas cabeças e depois comendo as suas tripas.",
-    "Ora, ora, carne nova.",
-    "Não tenha medo. Eu não mordo. Eu mato.",
-    "Oi, meus amigos, como vocês estão? Tudo bem com vocês? Principalmente com o John, que já deve estar todo arrumado e tanto dar o cu.",
-    "E você, Bruno, como vai essa vida? É ótima?",
-    "E a sua Golden, como está?",
-    "E você, Bruna, como vai a vida? É ótima?",
-    "Olha, novos brinquedos! Vocês não deveriam estar aqui. Mas estão, perfeito!",
-    "Eu estava tão sozinho, agora eu tenho novos amigos, novas diversões, coisas boas.",
-    "Jão, eu fiquei sabendo que os negão te comeram hoje.",
-    "Bruna, como você está, minha amiga? Vamos conversar um pouquinho, a sós?",
-    "Golden, Golden, como você está, meu brother? Como vai a vida? Morta ou inexistente.",
-    "John, John, John, como é se sentir inútil, patético, uma puta cachorrinha que dá o cu todo dia? Como você se sente com tudo isso, hein?",
-    "Golden é meu brinquedo favorito.",
-    "Cada grito de vocês é música para mim.",
-    "Vocês são tão divertidos, principalmente quando têm medo.",
-    "Vocês são meus novos amigos ou minhas novas vítimas.",
-    "Vocês são tão frágeis e eu tão faminto.",
-    "Vocês são meus brinquedos favoritos.",
-    "Vocês acham que estão seguros? Não estão.",
-    "Como vocês estão, minhas vítimas... quero dizer, amigos.",
 ]
 
 # Mensagens de erro/detecção
@@ -149,21 +128,24 @@ async def enviar_webhook(msg):
         print(f"Erro ao enviar webhook: {e}")
 
 
-# Mantém o bot conectado ao canal fixo
+# Mantém o bot conectado ao canal fixo (corrigido)
 async def manter_canal_fixo():
     await bot.wait_until_ready()
-    while True:
+    while not bot.is_closed():
         canal = bot.get_channel(CANAL_ID)
         if canal:
             guild = canal.guild
             voice = guild.voice_client
             if voice is None or not voice.is_connected():
                 try:
-                    await canal.connect()
-                    print("[DEBUG] Reconectado ao canal fixo")
+                    print("[DEBUG] Tentando conectar ao canal fixo...")
+                    await canal.connect(reconnect=False)
+                    print("[DEBUG] Conectado ao canal fixo")
                 except Exception as e:
-                    print(f"Erro ao reconectar: {e}")
-        await asyncio.sleep(120)  # intervalo maior para evitar desconexões
+                    print(f"[DEBUG] Falha ao conectar: {e}")
+                    await asyncio.sleep(300)  # espera mais tempo antes de tentar de novo
+                    continue
+        await asyncio.sleep(120)  # se já está conectado, só dorme
 
 
 # Eventos
@@ -182,7 +164,6 @@ async def on_voice_state_update(member, before, after):
 
     hora = datetime.now().strftime("%H:%M:%S")
 
-    # Entrou no canal fixo
     if before.channel is None and after.channel is not None:
         if after.channel.id == CANAL_ID:
             print(f"[DEBUG] {member.name} entrou no canal {after.channel.name}")
@@ -200,7 +181,6 @@ async def on_voice_state_update(member, before, after):
             print(f"[DEBUG] Enviando webhook: {msg}")
             await enviar_webhook(msg)
 
-    # Saiu do canal fixo
     elif before.channel is not None and after.channel is None:
         if before.channel.id == CANAL_ID:
             print(f"[DEBUG] {member.name} saiu do canal {before.channel.name}")
