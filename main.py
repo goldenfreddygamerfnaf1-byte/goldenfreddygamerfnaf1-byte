@@ -45,10 +45,31 @@ saidas = [
 
 # Frases de voz sombrias
 frases_voz = [
-    "Você não deveria estar aqui.",
+   "Você não deveria estar aqui.",
     "Eu posso te ver.",
     "Bora brincar?",
     "Eu amo brincar.",
+    "Vamos começar arrancando suas cabeças e depois comendo as suas tripas.",
+    "Ora, ora, carne nova.",
+    "Não tenha medo. Eu não mordo. Eu mato.",
+    "Oi, meus amigos, como vocês estão? Tudo bem com vocês? Principalmente com o John, que já deve estar todo arrumado e tanto dar o cu.",
+    "E você, Bruno, como vai essa vida? É ótima?",
+    "E a sua Golden, como está?",
+    "E você, Bruna, como vai a vida? É ótima?",
+    "Olha, novos brinquedos! Vocês não deveriam estar aqui. Mas estão, perfeito!",
+    "Eu estava tão sozinho, agora eu tenho novos amigos, novas diversões, coisas boas.",
+    "Jão, eu fiquei sabendo que os negão te comeram hoje.",
+    "Bruna, como você está, minha amiga? Vamos conversar um pouquinho, a sós?",
+    "Golden, Golden, como você está, meu brother? Como vai a vida? Morta ou inexistente.",
+    "John, John, John, como é se sentir inútil, patético, uma puta cachorrinha que dá o cu todo dia? Como você se sente com tudo isso, hein?",
+    "Golden é meu brinquedo favorito.",
+    "Cada grito de vocês é música para mim.",
+    "Vocês são tão divertidos, principalmente quando têm medo.",
+    "Vocês são meus novos amigos ou minhas novas vítimas.",
+    "Vocês são tão frágeis e eu tão faminto.",
+    "Vocês são meus brinquedos favoritos.",
+    "Vocês acham que estão seguros? Não estão.",
+    "Como vocês estão, minhas vítimas... quero dizer, amigos.",
 ]
 
 # Mensagens de erro/detecção
